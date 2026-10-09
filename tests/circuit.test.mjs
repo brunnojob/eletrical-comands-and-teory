@@ -52,3 +52,15 @@ test("TON resets when its input falls", () => {
   assert.equal(engine.scan({ START: false }, 200).coils.T, false);
   assert.equal(engine.scan({ START: true }, 300).coils.T, false);
 });
+
+test("rejects repeated members in an interlock", () => {
+  assert.throws(() => new CircuitEngine({
+    coils: [{ id: "PUMP", logic: contact("START") }],
+    interlocks: [["PUMP", "PUMP"]],
+  }), /invalid_interlock/);
+});
+test("rejects invalid contact identifiers before scanning", () => {
+  assert.throws(() => new CircuitEngine({
+    coils: [{ id: "PUMP", logic: contact("") }],
+  }), /invalid_contact/);
+});

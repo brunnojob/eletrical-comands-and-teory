@@ -26,6 +26,7 @@ export class CircuitEngine {
       if (
         !Array.isArray(group) ||
         group.length < 2 ||
+        new Set(group).size !== group.length ||
         group.some((id) => !this.coils.has(id))
       )
         throw new Error("invalid_interlock");
@@ -34,7 +35,9 @@ export class CircuitEngine {
     if (!node || typeof node !== "object" || depth > 32)
       throw new Error("invalid_logic_tree");
     if (node.type === "contact") {
-      if (typeof node.signal !== "string" || !["NO", "NC"].includes(node.mode))
+      if (typeof node.signal !== "string" ||
+        !/^[A-Z][A-Z0-9_]{0,31}$/.test(node.signal) ||
+        !["NO", "NC"].includes(node.mode))
         throw new Error("invalid_contact");
     } else if (["and", "or"].includes(node.type)) {
       if (
