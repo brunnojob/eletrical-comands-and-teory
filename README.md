@@ -8,7 +8,7 @@ Requisitos: Node.js 24.
 
 ```sh
 npm test
-node src/cli.mjs circuito.json entradas.json > resultado.json
+node src/cli.mjs examples/seal-in.json examples/inputs.json > resultado.json
 ```
 
 ## Funcionamento

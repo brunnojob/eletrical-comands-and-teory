@@ -1,0 +1,26 @@
+[
+  {
+    "timestampMs": 0,
+    "inputs": {
+      "SAFE": true,
+      "STOP": false,
+      "START": true
+    }
+  },
+  {
+    "timestampMs": 100,
+    "inputs": {
+      "SAFE": true,
+      "STOP": false,
+      "START": false
+    }
+  },
+  {
+    "timestampMs": 200,
+    "inputs": {
+      "SAFE": true,
+      "STOP": true,
+      "START": false
+    }
+  }
+]

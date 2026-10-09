@@ -1,0 +1,37 @@
+{
+  "coils": [
+    {
+      "id": "MOTOR",
+      "logic": {
+        "type": "and",
+        "children": [
+          {
+            "type": "contact",
+            "signal": "SAFE",
+            "mode": "NO"
+          },
+          {
+            "type": "contact",
+            "signal": "STOP",
+            "mode": "NC"
+          },
+          {
+            "type": "or",
+            "children": [
+              {
+                "type": "contact",
+                "signal": "START",
+                "mode": "NO"
+              },
+              {
+                "type": "contact",
+                "signal": "MOTOR",
+                "mode": "NO"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
