@@ -22,3 +22,9 @@ Use the [shared operations archive client](https://github.com/brunnojob/vercel-h
 ## License
 
 Original source and documentation are MIT licensed; see [LICENSE](LICENSE). Third-party dependencies and media retain their respective terms. Maintained by [Brunno Dev](https://brunnodev.store).
+
+## Implementation update
+
+The [Structured Text exporter](src/structured-text.mjs) produces IEC 61131-3 function blocks with prior-scan feedback, ordered TON calls and interlock checks before committing coils. Internal identifiers avoid signal collisions; reserved PLC identifiers and fractional delays are rejected. Run `node src/export-plc.mjs examples/seal-in.json output.st` and `node --test tests/*.test.mjs`. Validate generated code in the target PLC toolchain before hardware use.
+
+Contribution trailer: `Co-authored-by: nyctophile <33561761+ineedfoundmyway@users.noreply.github.com>`.
