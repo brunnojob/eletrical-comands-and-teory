@@ -1,0 +1,1 @@
+{"name":"electrical-circuit-engine","version":"2.0.0","type":"module","scripts":{"test":"node --test tests/*.test.mjs","analyze":"node src/cli.mjs"},"engines":{"node":">=22"}}
