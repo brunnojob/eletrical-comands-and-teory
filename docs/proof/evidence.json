@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "repository": "brunnojob/eletrical-comands-and-teory",
+  "source_commit": "0832f6894e7b498282cede2603ca66d08f759b7f",
+  "generated_at": "2026-10-10T02:35:48.517843+00:00",
+  "run_url": "https://github.com/brunnojob/eletrical-comands-and-teory/actions/runs/38017517875",
+  "inputs_sha256": {
+    ".proof/scenarios.json": "89154259f9b4795d7e839f77f8653584a19d9f6c335f000587b00a95e74fcefa"
+  },
+  "cases": [
+    {
+      "display": true,
+      "name": "npm test",
+      "argv": [
+        "bash",
+        "-e",
+        "-o",
+        "pipefail",
+        "-c",
+        "npm test"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "passed": true,
+      "seconds": 0.352,
+      "output": "\n> electrical-circuit-engine@2.0.0 test\n> node --test tests/*.test.mjs\n\n✔ seal-in circuit holds until stop and overload deenergize it (2.071602ms)\n✔ mutually energized reversing coils trip the software interlock (0.30473ms)\n✔ TON resets when its input falls (1.136674ms)\n✔ rejects repeated members in an interlock (0.525773ms)\n✔ rejects invalid contact identifiers before scanning (0.226924ms)\n✔ internal PLC names never collide with declared signals (1.820693ms)\n✔ feedback uses the previous scan and commits outputs after interlocks (0.765931ms)\n✔ nested TON blocks execute their inputs before their parent (3.800744ms)\n✔ rejects invalid identifiers and timer precision instead of emitting broken PLC code (0.398645ms)\nℹ tests 9\nℹ suites 0\nℹ pass 9\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 85.838436\n",
+      "output_sha256": "24f02364844dd4b46305252dedd82f2aeaae45c0c994e59e7e74454208c2627e"
+    },
+    {
+      "display": true,
+      "name": "Execute the seal-in circuit across supplied scans",
+      "argv": [
+        "node",
+        "src/cli.mjs",
+        "examples/seal-in.json",
+        "examples/inputs.json"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "passed": true,
+      "seconds": 0.051,
+      "output": "{\"scans\":3,\"final\":{\"sequence\":3,\"timestampMs\":200,\"coils\":{\"MOTOR\":false},\"transitions\":[{\"id\":\"MOTOR\",\"energized\":false}],\"interlockTrips\":[]},\"events\":[{\"sequence\":1,\"timestampMs\":0,\"coils\":{\"MOTOR\":true},\"transitions\":[{\"id\":\"MOTOR\",\"energized\":true}],\"interlockTrips\":[]},{\"sequence\":2,\"timestampMs\":100,\"coils\":{\"MOTOR\":true},\"transitions\":[],\"interlockTrips\":[]},{\"sequence\":3,\"timestampMs\":200,\"coils\":{\"MOTOR\":false},\"transitions\":[{\"id\":\"MOTOR\",\"energized\":false}],\"interlockTrips\":[]}]}\n",
+      "output_sha256": "452e3efb3851cd021ff69c58fc47a731950f83effaa29b6278c1f4ab32efddfe"
+    }
+  ],
+  "passed": true
+}

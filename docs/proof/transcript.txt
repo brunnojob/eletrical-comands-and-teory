@@ -1,0 +1,25 @@
+$ bash -e -o pipefail -c npm test
+
+> electrical-circuit-engine@2.0.0 test
+> node --test tests/*.test.mjs
+
+✔ seal-in circuit holds until stop and overload deenergize it (2.071602ms)
+✔ mutually energized reversing coils trip the software interlock (0.30473ms)
+✔ TON resets when its input falls (1.136674ms)
+✔ rejects repeated members in an interlock (0.525773ms)
+✔ rejects invalid contact identifiers before scanning (0.226924ms)
+✔ internal PLC names never collide with declared signals (1.820693ms)
+✔ feedback uses the previous scan and commits outputs after interlocks (0.765931ms)
+✔ nested TON blocks execute their inputs before their parent (3.800744ms)
+✔ rejects invalid identifiers and timer precision instead of emitting broken PLC code (0.398645ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 85.838436
+
+$ node src/cli.mjs examples/seal-in.json examples/inputs.json
+{"scans":3,"final":{"sequence":3,"timestampMs":200,"coils":{"MOTOR":false},"transitions":[{"id":"MOTOR","energized":false}],"interlockTrips":[]},"events":[{"sequence":1,"timestampMs":0,"coils":{"MOTOR":true},"transitions":[{"id":"MOTOR","energized":true}],"interlockTrips":[]},{"sequence":2,"timestampMs":100,"coils":{"MOTOR":true},"transitions":[],"interlockTrips":[]},{"sequence":3,"timestampMs":200,"coils":{"MOTOR":false},"transitions":[{"id":"MOTOR","energized":false}],"interlockTrips":[]}]}
