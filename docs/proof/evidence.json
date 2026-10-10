@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "repository": "brunnojob/eletrical-comands-and-teory",
-  "source_commit": "0832f6894e7b498282cede2603ca66d08f759b7f",
-  "generated_at": "2026-10-10T02:35:48.517843+00:00",
-  "run_url": "https://github.com/brunnojob/eletrical-comands-and-teory/actions/runs/38017517875",
+  "source_commit": "be50ac926039e71a8292c443acbd99f2dc97086e",
+  "generated_at": "2026-10-10T02:43:26.240154+00:00",
+  "run_url": "https://github.com/brunnojob/eletrical-comands-and-teory/actions/runs/38017993729",
   "inputs_sha256": {
     ".proof/scenarios.json": "89154259f9b4795d7e839f77f8653584a19d9f6c335f000587b00a95e74fcefa"
   },
@@ -22,9 +22,9 @@
       "exit": 0,
       "expected_exit": 0,
       "passed": true,
-      "seconds": 0.352,
-      "output": "\n> electrical-circuit-engine@2.0.0 test\n> node --test tests/*.test.mjs\n\n✔ seal-in circuit holds until stop and overload deenergize it (2.071602ms)\n✔ mutually energized reversing coils trip the software interlock (0.30473ms)\n✔ TON resets when its input falls (1.136674ms)\n✔ rejects repeated members in an interlock (0.525773ms)\n✔ rejects invalid contact identifiers before scanning (0.226924ms)\n✔ internal PLC names never collide with declared signals (1.820693ms)\n✔ feedback uses the previous scan and commits outputs after interlocks (0.765931ms)\n✔ nested TON blocks execute their inputs before their parent (3.800744ms)\n✔ rejects invalid identifiers and timer precision instead of emitting broken PLC code (0.398645ms)\nℹ tests 9\nℹ suites 0\nℹ pass 9\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 85.838436\n",
-      "output_sha256": "24f02364844dd4b46305252dedd82f2aeaae45c0c994e59e7e74454208c2627e"
+      "seconds": 0.252,
+      "output": "\n> electrical-circuit-engine@2.0.0 test\n> node --test tests/*.test.mjs\n\n✔ seal-in circuit holds until stop and overload deenergize it (1.28592ms)\n✔ mutually energized reversing coils trip the software interlock (0.171426ms)\n✔ TON resets when its input falls (1.070589ms)\n✔ rejects repeated members in an interlock (0.317555ms)\n✔ rejects invalid contact identifiers before scanning (0.193719ms)\n✔ internal PLC names never collide with declared signals (1.057349ms)\n✔ feedback uses the previous scan and commits outputs after interlocks (0.269994ms)\n✔ nested TON blocks execute their inputs before their parent (1.031635ms)\n✔ rejects invalid identifiers and timer precision instead of emitting broken PLC code (0.158597ms)\nℹ tests 9\nℹ suites 0\nℹ pass 9\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 53.55792\n",
+      "output_sha256": "5a965eed7ce729891ccf597949dd96d721e3cf43d8f0b1e61170f1271e2a0ecb"
     },
     {
       "display": true,

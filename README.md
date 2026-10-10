@@ -35,6 +35,6 @@ Contribution trailer: `Co-authored-by: nyctophile <329826984+ineedfoundmyway@use
 
 ![Recorded program execution](docs/proof/execution.svg)
 
-[Verified run](https://github.com/brunnojob/eletrical-comands-and-teory/actions/runs/38017517875) · [Execution report](docs/proof/evidence.json)
+[Verified run](https://github.com/brunnojob/eletrical-comands-and-teory/actions/runs/38017993729) · [Execution report](docs/proof/evidence.json)
 
 Run `python .proof/record.py` after installing the prerequisites above. The scenarios execute repository code and verify exit codes and expected output. CI publishes `execution-proof` with the transcript, input fingerprints and source commit. The downloadable report identifies the exact tested version; the workflow badge tracks the latest run.
