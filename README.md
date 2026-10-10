@@ -27,4 +27,12 @@ Original source and documentation are MIT licensed; see [LICENSE](LICENSE). Thir
 
 The [Structured Text exporter](src/structured-text.mjs) produces IEC 61131-3 function blocks with prior-scan feedback, ordered TON calls and interlock checks before committing coils. Internal identifiers avoid signal collisions; reserved PLC identifiers and fractional delays are rejected. Run `node src/export-plc.mjs examples/seal-in.json output.st` and `node --test tests/*.test.mjs`. Validate generated code in the target PLC toolchain before hardware use.
 
-Contribution trailer: `Co-authored-by: nyctophile <33561761+ineedfoundmyway@users.noreply.github.com>`.
+Contribution trailer: `Co-authored-by: nyctophile <329826984+ineedfoundmyway@users.noreply.github.com>`.
+
+## Execution proof
+
+[![Executable proof](https://github.com/brunnojob/eletrical-comands-and-teory/actions/workflows/proof.yml/badge.svg)](https://github.com/brunnojob/eletrical-comands-and-teory/actions/workflows/proof.yml)
+
+[Recorded execution and downloadable evidence](https://github.com/brunnojob/eletrical-comands-and-teory/actions/workflows/proof.yml)
+
+Run `python .proof/record.py` after installing the prerequisites above. The scenarios execute repository code and verify exit codes and expected output. CI publishes `execution-proof` with the transcript, input fingerprints and source commit. The downloadable report identifies the exact tested version; the workflow badge tracks the latest run.

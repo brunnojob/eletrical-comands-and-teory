@@ -1,0 +1,35 @@
+{
+  "repository": "brunnojob/eletrical-comands-and-teory",
+  "inputs": [
+    ".proof/scenarios.json"
+  ],
+  "cases": [
+    {
+      "name": "npm test",
+      "argv": [
+        "bash",
+        "-e",
+        "-o",
+        "pipefail",
+        "-c",
+        "npm test"
+      ],
+      "timeout": 900,
+      "display": true
+    },
+    {
+      "name": "Execute the seal-in circuit across supplied scans",
+      "argv": [
+        "node",
+        "src/cli.mjs",
+        "examples/seal-in.json",
+        "examples/inputs.json"
+      ],
+      "contains": [
+        "\"scans\"",
+        "\"events\""
+      ],
+      "timeout": 120
+    }
+  ]
+}
