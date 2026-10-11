@@ -1,5 +1,7 @@
 # Electrical Circuit Engine
 
+[View execution evidence](https://brunnojob.github.io/devstart-lab/proofs/eletrical-comands-and-teory/) · [Run browser demo](https://brunnojob.github.io/devstart-lab/proofs/eletrical-comands-and-teory/demo/)
+
 A circuit interpreter with NO/NC contacts, AND/OR logic, TON timing, previous-state latching, and mutually exclusive coils.
 
 ## Run
