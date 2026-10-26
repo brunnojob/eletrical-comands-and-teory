@@ -1,42 +1,34 @@
-# Electrical Circuit Engine
+# Electrical Controls Lab
 
-[View execution evidence](https://brunnojob.github.io/devstart-lab/proofs/eletrical-comands-and-teory/) · [Run browser demo](https://brunnojob.github.io/devstart-lab/proofs/eletrical-comands-and-teory/demo/)
+Electrical control simulation and automation logic in Python.
 
-A circuit interpreter with NO/NC contacts, AND/OR logic, TON timing, previous-state latching, and mutually exclusive coils.
+**[Open the lab](https://brunnojob.github.io/eletrical-comands-and-teory/)** · [Original website](https://comandoeletricobrunno.netlify.app/)
 
-## Run
+- Six simulators: DOL, reversal, star-delta, traffic lights, phase failure and VFD.
+- Motor calculations, virtual multimeter, theory, training and project planning.
+- Circuit editor, scan history, interlocks, TON timers and PLC Structured Text export.
+- Projects and progress saved in browser storage. JSON backup and legacy project import.
 
-Requirements: Node.js 24.
+No login, API token or backend. Python runs through Brython; HTML and CSS provide the interface. The browser downloads the pinned runtime from jsDelivr. Data stays on the current browser and site address; export a backup to move it.
+
+## Run locally
+
+Requires Python 3.11+; no Python dependencies.
 
 ```sh
-npm test
-node src/cli.mjs examples/seal-in.json examples/inputs.json > result.json
+python -m http.server 8000
 ```
 
-## Behavior
+Open `http://localhost:8000`. Internet access is needed to load Brython.
 
-Configuration bounds expression depth, tags, and coils. The clock cannot move backward. Invalid inputs do not change committed timers. Tests cover latching, delays, and interlocks.
+```sh
+python -m electrical simulate examples/seal-in.json examples/inputs.json
+python -m electrical export-plc examples/seal-in.json
+python -m unittest discover -s tests -v
+```
 
-## Optional report archive
+GitHub Actions tests the Python code and publishes the browser app to GitHub Pages.
 
-Use the [shared operations archive client](https://github.com/brunnojob/vercel-home-telemetry-api/tree/main/cloud) to queue `result.json` under project `eletrical-comands-and-teory`. The client uses `BRUNNODEV_ACCESS_TOKEN` and retains unacknowledged reports locally.
+Learning simulator only; it does not operate physical equipment. Sizing outputs are study estimates.
 
-## License
-
-Original source and documentation are MIT licensed; see [LICENSE](LICENSE). Third-party dependencies and media retain their respective terms. Maintained by [Brunno Dev](https://brunnodev.store).
-
-## Implementation update
-
-The [Structured Text exporter](src/structured-text.mjs) produces IEC 61131-3 function blocks with prior-scan feedback, ordered TON calls and interlock checks before committing coils. Internal identifiers avoid signal collisions; reserved PLC identifiers and fractional delays are rejected. Run `node src/export-plc.mjs examples/seal-in.json output.st` and `node --test tests/*.test.mjs`. Validate generated code in the target PLC toolchain before hardware use.
-
-Contribution trailer: `Co-authored-by: nyctophile <33561761+ineedfoundmyway@users.noreply.github.com>`.
-
-## Execution proof
-
-[![Executable proof](https://github.com/brunnojob/eletrical-comands-and-teory/actions/workflows/proof.yml/badge.svg)](https://github.com/brunnojob/eletrical-comands-and-teory/actions/workflows/proof.yml)
-
-![Recorded program execution](docs/proof/execution.svg)
-
-[Verified run](https://github.com/brunnojob/eletrical-comands-and-teory/actions/runs/38017993729) · [Execution report](docs/proof/evidence.json)
-
-Run `python .proof/record.py` after installing the prerequisites above. The scenarios execute repository code and verify exit codes and expected output. CI publishes `execution-proof` with the transcript, input fingerprints and source commit. The downloadable report identifies the exact tested version; the workflow badge tracks the latest run.
+[MIT License](LICENSE) · [Brunno Dev](https://github.com/brunnojob) · [Sponsor](https://buymeacoffee.com/brunnodev)

@@ -1,17 +1,23 @@
-name: Verify
-on: [push, pull_request]
+name: Python checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
-concurrency:
-  group: verify-${{ github.ref }}
-  cancel-in-progress: true
 jobs:
-  verify:
+  test:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    strategy:
+      matrix:
+        python: ['3.11', '3.13']
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-python@v5
         with:
-          node-version: "24"
-      - run: npm test
+          python-version: ${{ matrix.python }}
+      - run: python -m unittest discover -s tests -v
+      - run: python -m compileall -q electrical app.py scripts
+      - run: python -m electrical simulate examples/seal-in.json examples/inputs.json
+      - run: python -m electrical export-plc examples/seal-in.json
+      - run: python scripts/build_site.py

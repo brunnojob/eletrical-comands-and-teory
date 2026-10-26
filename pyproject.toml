@@ -1,0 +1,7 @@
+[project]
+name = "electrical-controls-lab"
+version = "2.0.0"
+description = "Electrical control simulation and PLC logic in Python"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Brunno Dev" }]
