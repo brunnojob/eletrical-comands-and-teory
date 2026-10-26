@@ -81,11 +81,15 @@ def field(parent, label, value="", kind="text", options=None, key=None):
     box <= lab
     if options is not None:
         item = element("select", id=uid)
+        selected = None
         for option in options:
             option_value, option_label = option if isinstance(option, tuple) else (option, option)
             opt = element("option", option_label, value=str(option_value))
             item <= opt
-        item.value = str(value)
+            if option_value == value or str(option_value) == str(value):
+                selected = str(option_value)
+        if selected is not None:
+            item.value = selected
     else:
         item = element("textarea" if kind == "textarea" else "input", id=uid)
         if kind != "textarea":
