@@ -343,7 +343,7 @@ def render_simulator_content():
         row <= element("code", key)
         status = element("span", cls="on" if value else "off")
         status <= element("span", cls="led")
-        status <= "ON" if value else "OFF"
+        status <= ("ON" if value else "OFF")
         row <= status
         side <= row
     if state["mode"] == "vfd":
@@ -606,7 +606,8 @@ def cancel_edit():
 def open_project(project):
     state["project_id"] = project["id"]
     workspace["voltage"] = project["voltage"]
-    reset_simulation(project["circuit"], project["definition"])
+    custom = project["definition"] if project["definition"] != PRESETS[project["circuit"]]["definition"] else None
+    reset_simulation(project["circuit"], custom)
     state["page"] = "Simulator"
     render()
 
