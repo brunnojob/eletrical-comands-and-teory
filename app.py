@@ -10,6 +10,7 @@ from electrical import CircuitEngine, structured_text
 from electrical.circuits import PRESETS, input_signals, preset
 from electrical.learning import BUILD_STEPS, CHAPTERS, QUESTIONS
 from electrical.projects import normalize_project, read_backup
+from electrical.i18n import translate, signal_label, error_message
 from electrical.sizing import bill_of_materials, motor_sizing, voltage_measurement
 
 
@@ -21,10 +22,84 @@ inputs = {}
 definition = {}
 active_preset = None
 storage_ok = True
+preferences = {"language": "en", "theme": "dark"}
+draft_fields = {}
+last_notification = None
+PREFERENCES_KEY = "electrical_preferences_v1"
 
 
-def notify(message, error=False):
-    document["notification"].text = message
+def t(value):
+    return translate(value, preferences["language"])
+
+
+def signal(value):
+    return signal_label(value, preferences["language"])
+
+
+def load_preferences():
+    try:
+        saved = json.loads(storage[PREFERENCES_KEY]) if PREFERENCES_KEY in storage else {}
+        if saved.get("language") in ("en", "pt-BR"):
+            preferences["language"] = saved["language"]
+        if saved.get("theme") in ("dark", "light"):
+            preferences["theme"] = saved["theme"]
+    except Exception:
+        pass
+
+
+def save_preferences():
+    try:
+        storage[PREFERENCES_KEY] = json.dumps(preferences)
+    except Exception:
+        notify("Browser storage is unavailable. Export a backup before closing this page.", True)
+
+
+def apply_preferences():
+    root = document.select("html")[0]
+    root.attrs["lang"] = preferences["language"]
+    root.attrs["data-theme"] = preferences["theme"]
+    document.title = t("Electrical Controls Lab · Brunno Dev")
+    for node in document.select("[data-i18n]"):
+        node.text = t(node.attrs["data-i18n"])
+    document["navigation"].attrs["aria-label"] = t("Tools")
+    document["language"].attrs["aria-label"] = t("Language")
+    document["theme"].attrs["aria-label"] = t("Theme")
+    document["language"].value = preferences["language"]
+    document["theme"].value = preferences["theme"]
+    document.select('meta[name="description"]')[0].attrs["content"] = t("Electrical controls, motor calculations and circuit simulation in Python. No account required.")
+    if last_notification:
+        message, error, technical = last_notification
+        document["notification"].text = error_message(message, preferences["language"]) if technical else t(message)
+
+
+def change_language(event):
+    global draft_fields
+    if event.target.value not in ("en", "pt-BR"):
+        return
+    stop()
+    draft_fields = {node.id: node.value for node in document.select("#app input, #app select, #app textarea") if node.id and node.type not in ("checkbox", "file")}
+    preferences["language"] = event.target.value
+    save_preferences()
+    apply_preferences()
+    render()
+    draft_fields = {}
+
+
+def change_theme(event):
+    if event.target.value not in ("dark", "light"):
+        return
+    preferences["theme"] = event.target.value
+    save_preferences()
+    apply_preferences()
+    if state["page"] == "Simulator":
+        document["diagram"].html = diagram_svg()
+        document["diagram"].select("svg")[0].style.width = str(state["zoom"] * 100) + "%"
+
+
+def notify(message, error=False, technical=False):
+    global last_notification
+    last_notification = (message, error, technical)
+    document["notification"].text = error_message(message, preferences["language"]) if technical else t(message)
     document["notification"].class_name = "error" if error else ""
 
 
@@ -56,10 +131,10 @@ def load():
         notify("Saved data could not be read. The original storage was left untouched; import a valid backup to recover it.", True)
 
 
-def element(tag, text=None, cls=None, **attrs):
+def element(tag, text=None, cls=None, localize=True, **attrs):
     item = getattr(html, tag.upper())(**attrs)
     if text is not None:
-        item.text = str(text)
+        item.text = str(t(text) if localize else text)
     if cls:
         item.class_name = cls
     return item
@@ -76,6 +151,7 @@ def button(text, callback, cls="", target=None):
 def field(parent, label, value="", kind="text", options=None, key=None):
     box = element("div", cls="field")
     uid = key or "field-" + str(len(document.select("input,select,textarea")))
+    value = draft_fields.get(uid, value)
     lab = element("label", label)
     lab.attrs["for"] = uid
     box <= lab
@@ -88,6 +164,7 @@ def field(parent, label, value="", kind="text", options=None, key=None):
             item <= opt
             if option_value == value or str(option_value) == str(value):
                 selected = str(option_value)
+                opt.selected = True
         if selected is not None:
             item.value = selected
     else:
@@ -110,8 +187,8 @@ def card(parent, title=None, cls=""):
     return item
 
 
-def text(parent, value, cls=None, tag="p"):
-    item = element(tag, value, cls)
+def text(parent, value, cls=None, tag="p", localize=True):
+    item = element(tag, value, cls, localize=localize)
     parent <= item
     return item
 
@@ -136,13 +213,13 @@ def table(parent, headers, rows):
     tab = html.TABLE()
     heading = html.TR()
     for value in headers:
-        heading <= html.TH(str(value))
+        heading <= html.TH(str(t(value)))
     tab <= html.THEAD(heading)
     body = html.TBODY()
     for row in rows:
         line = html.TR()
         for value in row:
-            line <= html.TD(str(value))
+            line <= html.TD(str(t(value)))
         body <= line
     tab <= body
     parent <= tab
@@ -192,7 +269,7 @@ def scan():
         return result
     except ValueError as error:
         stop()
-        notify(str(error), True)
+        notify(str(error), True, technical=True)
         return None
 
 
@@ -236,35 +313,41 @@ def change_input(event, key):
 def logic_text(node):
     kind = node["type"]
     if kind == "contact":
-        return ("NOT " if node["mode"] == "NC" else "") + node["signal"]
+        return (t("NOT") + " " if node["mode"] == "NC" else "") + signal(node["signal"])
     if kind == "ton":
-        return f'TON {node["id"]} ({node["delayMs"]} ms): ' + logic_text(node["input"])
-    return "(" + (" AND " if kind == "and" else " OR ").join(logic_text(child) for child in node["children"]) + ")"
+        return f'TON {signal(node["id"])} ({node["delayMs"]} ms): ' + logic_text(node["input"])
+    return "(" + (" " + t("AND" if kind == "and" else "OR") + " ").join(logic_text(child) for child in node["children"]) + ")"
 
 
 def diagram_svg():
+    light = preferences["theme"] == "light"
+    ink = "#405269" if light else "#91a2b9"
+    face = "#f4f7fb" if light else "#142130"
+    rung = "#ffffff" if light else "#111d2a"
+    active = "#36751a" if light else "#a5ed68"
+    inactive = "#687d95" if light else "#53677f"
     width = 1000
     height = 160 + len(definition["coils"]) * 85
-    parts = [f'<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Electrical control schematic" viewBox="0 0 {width} {height}">', '<g font-family="monospace" font-size="13" fill="#91a2b9">']
-    parts.append('<text x="30" y="30">POWER OVERVIEW · SIMPLIFIED</text>')
+    parts = [f'<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="{escape(t("Electrical control schematic"))}" viewBox="0 0 {width} {height}">', f'<g font-family="monospace" font-size="13" fill="{ink}">']
+    parts.append('<text x="30" y="30">' + escape(t('POWER OVERVIEW · SIMPLIFIED')) + '</text>')
     labels = ["3~ SUPPLY", "ISOLATOR", "PROTECTION", "CONTACTOR / DRIVE", "MOTOR / LOAD"]
     energized = any(value for key, value in engine.coils.items() if key not in ("STAR_DONE", "DELTA_READY"))
     for index, label in enumerate(labels):
         x = 30 + index * 195
-        color = "#a5ed68" if energized else "#53677f"
+        color = active if energized else inactive
         if index:
             parts.append(f'<path d="M{x-40} 72H{x}" fill="none" stroke="{color}" stroke-width="2"/>')
-        parts.append(f'<rect x="{x}" y="48" width="155" height="48" rx="5" fill="#142130" stroke="{color}"/><text x="{x+77.5}" y="77" text-anchor="middle" font-size="10">{label}</text>')
-    parts.append('<text x="30" y="130">CONTROL LOGIC · PREVIOUS-SCAN FEEDBACK</text>')
+        parts.append(f'<rect x="{x}" y="48" width="155" height="48" rx="5" fill="{face}" stroke="{color}"/><text x="{x+77.5}" y="77" text-anchor="middle" font-size="10">{escape(t(label))}</text>')
+    parts.append('<text x="30" y="130">' + escape(t('CONTROL LOGIC · PREVIOUS-SCAN FEEDBACK')) + '</text>')
     for index, output in enumerate(definition["coils"]):
         y = 165 + index * 85
-        color = "#a5ed68" if engine.coils[output["id"]] else "#53677f"
+        color = active if engine.coils[output["id"]] else inactive
         label = logic_text(output["logic"])
         lines = [label[i:i+90] for i in range(0, len(label), 90)]
-        parts.append(f'<path d="M30 {y}H70M800 {y}H855M905 {y}H960" stroke="{color}" stroke-width="2" fill="none"/><rect x="70" y="{y-20}" width="730" height="55" rx="5" fill="#111d2a" stroke="{color}"/>')
+        parts.append(f'<path d="M30 {y}H70M800 {y}H855M905 {y}H960" stroke="{color}" stroke-width="2" fill="none"/><rect x="70" y="{y-20}" width="730" height="55" rx="5" fill="{rung}" stroke="{color}"/>')
         for line, content in enumerate(lines[:3]):
             parts.append(f'<text x="85" y="{y-2+line*15}" font-size="11">{escape(content)}</text>')
-        parts.append(f'<circle cx="880" cy="{y}" r="25" fill="#142130" stroke="{color}" stroke-width="2"/><text x="880" y="{y+45}" text-anchor="middle" fill="{color}" font-size="11">{escape(output["id"])}</text>')
+        parts.append(f'<circle cx="880" cy="{y}" r="25" fill="{face}" stroke="{color}" stroke-width="2"/><text x="880" y="{y+45}" text-anchor="middle" fill="{color}" font-size="11">{escape(signal(output["id"]))}</text>')
     parts.append('</g></svg>')
     return "".join(parts)
 
@@ -337,17 +420,17 @@ def render_simulator_content():
         check = html.INPUT(type="checkbox", id="input-" + key)
         check.checked = value
         check.bind("change", lambda event, key=key: change_input(event, key))
-        label = html.LABEL(key.replace("_", " "), **{"for": "input-" + key})
+        label = html.LABEL(signal(key), **{"for": "input-" + key})
         box <= check
         box <= label
         side <= box
     text(side, "Outputs", tag="h3")
     for key, value in engine.coils.items():
         row = element("div", cls="signal")
-        row <= element("code", key)
+        row <= element("code", signal(key), localize=False)
         status = element("span", cls="on" if value else "off")
         status <= element("span", cls="led")
-        status <= ("ON" if value else "OFF")
+        status <= t("ON" if value else "OFF")
         row <= status
         side <= row
     if state["mode"] == "vfd":
@@ -360,9 +443,9 @@ def render_simulator_content():
                     raise ValueError("Use a frequency between 0 and 120 Hz.")
                 workspace["frequency"] = value
                 save()
-                result.text = f'Modeled 4-pole synchronous speed: {value * 30:.0f} rpm' if engine.coils.get("DRIVE_RUN") else "Drive stopped"
+                result.text = t(f'Modeled 4-pole synchronous speed: {value * 30:.0f} rpm' if engine.coils.get("DRIVE_RUN") else "Drive stopped")
             except ValueError as error:
-                notify(str(error), True)
+                notify(str(error), True, technical=True)
         freq.bind("change", set_frequency)
     logs = card(parent, "Events & alarms")
     if state["alarms"]:
@@ -388,14 +471,14 @@ def render_simulator_content():
             render()
             notify("Custom circuit loaded.")
         except (ValueError, TypeError, KeyError) as error:
-            notify(str(error), True)
+            notify(str(error), True, technical=True)
     button("Load circuit", load_definition, target=controls)
     button("JSON ↓", lambda event: download("circuit.json", json.dumps(definition, indent=2)), target=controls)
     def export_st(event):
         try:
             download("circuit.st", structured_text(definition), "text/plain")
         except ValueError as error:
-            notify(str(error), True)
+            notify(str(error), True, technical=True)
     button("Structured Text ↓", export_st, target=controls)
     parent <= with_code
 
@@ -425,10 +508,10 @@ def render_theory(parent):
         contents.clear()
         query = search.value.lower()
         for index, (title, body) in enumerate(CHAPTERS):
-            if query not in (title + body).lower():
+            if query not in (t(title) + t(body)).lower():
                 continue
             details = element("details")
-            details <= element("summary", f'{index+1:02d} · {title}')
+            details <= element("summary", f'{index+1:02d} · {t(title)}')
             text(details, body)
             contents <= details
     search.bind("input", show)
@@ -455,7 +538,7 @@ def render_sizing(parent):
             text(output, "I = P / (√3 × V × power factor × efficiency). Starting current uses an assumed multiplier. Cable and protective-device values are study examples, not installation selections; check installation method, derating, voltage drop, fault level, starting duty and manufacturer coordination.", "note")
             button("Results JSON ↓", lambda event: download("motor-sizing.json", json.dumps(result, indent=2)), target=output)
         except ValueError as error:
-            notify(str(error), True)
+            notify(str(error), True, technical=True)
     button("Calculate", calculate, "primary", form)
     calculate()
     conversions = card(parent, "Power conversion")
@@ -472,7 +555,7 @@ def render_sizing(parent):
             kw = number * {"kW": 1, "CV": .73549875, "HP": .745699872}[unit.value]
             result.text = f'{kw:.3f} kW · {kw/.73549875:.3f} CV · {kw/.745699872:.3f} HP'
         except ValueError as error:
-            notify(str(error), True)
+            notify(str(error), True, technical=True)
     value.bind("input", convert)
     unit.bind("change", convert)
     convert()
@@ -493,17 +576,17 @@ def render_multimeter(parent):
         mode = function.value
         if mode in ("AC voltage", "DC voltage"):
             value = voltage_measurement(red.value, black.value, workspace["voltage"], "DC" if mode == "DC voltage" else "AC")
-            unit = "V DC" if mode == "DC voltage" else "V AC"
-            description.text = "The model assumes an ideal balanced supply. Actual readings depend on the real circuit and equipment."
+            unit = t("V DC" if mode == "DC voltage" else "V AC")
+            description.text = t("The model assumes an ideal balanced supply. Actual readings depend on the real circuit and equipment.")
         elif mode == "AC current":
             current = motor_sizing(7.5, workspace["voltage"])["current_a"]
             value = current if red.value.startswith("L") and any(engine.coils.values()) else 0
-            unit = "A AC"
-            description.text = "Modeled clamp reading on the selected red-probe conductor for a 7.5 kW load. The black probe is unused in clamp mode. No live measurement is performed."
+            unit = t("A AC")
+            description.text = t("Modeled clamp reading on the selected red-probe conductor for a 7.5 kW load. The black probe is unused in clamp mode. No live measurement is performed.")
         else:
             value = "0.0" if red.value == black.value or {red.value, black.value} <= {"N", "PE"} else "OL"
             unit = "Ω / continuity"
-            description.text = "A separate de-energized topology model is used here. It assumes an N–PE bond and no path between different phase points. This does not describe or verify any physical installation."
+            description.text = t("A separate de-energized topology model is used here. It assumes an N–PE bond and no path between different phase points. This does not describe or verify any physical installation.")
         meter.clear()
         meter <= element("small", unit)
         meter <= (f'{value:.1f}' if isinstance(value, (int, float)) else value)
@@ -551,7 +634,7 @@ def import_backup(event):
             if saved:
                 notify(f"Imported {len(projects)} projects.")
         except (ValueError, TypeError, KeyError) as error:
-            notify(str(error), True)
+            notify(str(error), True, technical=True)
     reader.bind("load", loaded)
     reader.bind("error", lambda event: notify("The selected file could not be read.", True))
     reader.readAsText(file)
@@ -595,7 +678,7 @@ def project_form(parent, existing=None):
             if saved:
                 notify("Project saved in this browser.")
         except (ValueError, TypeError) as error:
-            notify(str(error), True)
+            notify(str(error), True, technical=True)
     controls = toolbar(item)
     button("Save project", submit, "primary", controls)
     if existing:
@@ -624,7 +707,7 @@ def edit_project(project):
 def duplicate_project(project):
     value = copy.deepcopy(project)
     value["id"] = new_id()
-    value["name"] = value["name"][:110] + " (copy)"
+    value["name"] = value["name"][:110] + t(" (copy)")
     if len(workspace["projects"]) >= 500:
         notify("The workspace can hold at most 500 projects.", True)
         return
@@ -635,7 +718,7 @@ def duplicate_project(project):
 
 def delete_project(project, container):
     container.clear()
-    text(container, 'Remove "' + project["name"] + '" from this browser? Export a backup first if needed.')
+    text(container, t('Remove project named {name} from this browser? Export a backup first if needed.').format(name=project['name']), localize=False)
     controls = toolbar(container)
     def remove(event):
         workspace["projects"] = [x for x in workspace["projects"] if x["id"] != project["id"]]
@@ -656,9 +739,9 @@ def render_projects(parent):
     parent <= projects
     for project in workspace["projects"]:
         item = card(projects, cls="project-card")
-        text(item, PRESETS[project["circuit"]]["name"] + " · " + project["status"], "tag", "span")
-        text(item, project["name"], tag="h3")
-        text(item, project["description"] or "No description.", "subtle")
+        text(item, t(PRESETS[project["circuit"]]["name"]) + " · " + t(project["status"]), "tag", "span")
+        text(item, project["name"], tag="h3", localize=False)
+        text(item, project["description"] or t("No description."), "subtle", localize=False)
         text(item, f'{project["power_kw"]:.2f} kW · {project["voltage"]:g} V', "subtle")
         controls = toolbar(item)
         button("Open", lambda event, p=project: open_project(p), "primary small", controls)
@@ -675,7 +758,7 @@ def render_projects(parent):
         item = card(templates, data["name"])
         text(item, data["detail"], "subtle")
         def use(event, key=key):
-            value = normalize_project({"name": PRESETS[key]["name"] + " project", "circuit": key, "power_kw": 3.7, "voltage": 380, "id": new_id()})
+            value = normalize_project({"name": t("{circuit} project").format(circuit=t(PRESETS[key]["name"])), "circuit": key, "power_kw": 3.7, "voltage": 380, "id": new_id()})
             if len(workspace["projects"]) >= 500:
                 notify("The workspace can hold at most 500 projects.", True)
                 return
@@ -696,11 +779,11 @@ def render_build(parent):
     power = project["power_kw"] if project else 7.5
     voltage = project["voltage"] if project else workspace["voltage"]
     current = motor_sizing(power, voltage)["current_a"]
-    text(box, f'{PRESETS[mode]["name"]} · {power:.2f} kW · {voltage:g} V · estimated rated current {current:.2f} A')
+    text(box, t('{circuit} · {power} kW · {voltage} V · estimated rated current {current} A').format(circuit=t(PRESETS[mode]['name']), power=f'{power:.2f}', voltage=f'{voltage:g}', current=f'{current:.2f}'))
     table(box, ["Item", "Quantity", "Selection reference"], bill_of_materials(mode, current))
     text(box, "Planning aid for study. Final wiring, ratings and protection settings require a reviewed design and manufacturer documentation.", "note")
     controls = toolbar(box)
-    button("Materials CSV ↓", lambda event: download("materials.csv", "Item,Quantity,Selection reference\n" + "\n".join(','.join('"' + str(cell).replace('"', '""') + '"' for cell in row) for row in bill_of_materials(mode, current)), "text/csv"), target=controls)
+    button("Materials CSV ↓", lambda event: download("materials.csv", ",".join(t(x) for x in ["Item", "Quantity", "Selection reference"]) + "\n" + "\n".join(','.join('"' + str(t(cell)).replace('"', '""') + '"' for cell in row) for row in bill_of_materials(mode, current)), "text/csv"), target=controls)
     button("Print / PDF", lambda event: window.print(), target=controls)
     checklist = card(parent, "Build & review checklist")
     prefix = selector.value
@@ -718,7 +801,7 @@ def render_build(parent):
             save()
         check.bind("change", checked)
         label = html.LABEL(**{"for": "build-" + str(index)})
-        label <= element("strong", f'{index+1}. {title}')
+        label <= element("strong", f'{index+1}. {t(title)}')
         label <= element("p", body, "subtle")
         row <= check
         row <= label
@@ -758,7 +841,7 @@ def render_training(parent):
             render()
         button(option, answer, cls, box).disabled = state["answered"] is not None
     if state["answered"] is not None:
-        text(box, ("Correct. " if state["answered"] == correct else "Try again. ") + explanation, "note")
+        text(box, t("Correct. " if state["answered"] == correct else "Try again. ") + t(explanation), "note")
     controls = toolbar(box)
     button("← Previous", lambda event: question_at(index - 1), target=controls).disabled = index == 0
     button("Retry", lambda event: question_at(index), target=controls)
@@ -792,7 +875,7 @@ def render():
     for name, (icon, _, _) in PAGES.items():
         item = button("", lambda event, name=name: select_page(name), "active" if state["page"] == name else "", navigation)
         item <= element("span", icon)
-        item <= name
+        item <= t(name)
         if state["page"] == name:
             item.attrs["aria-current"] = "page"
     parent = document["app"]
@@ -810,6 +893,10 @@ def render():
         notify("Browser storage is unavailable. Export a backup before closing this page.", True)
 
 
+load_preferences()
+apply_preferences()
+document["language"].bind("change", change_language)
+document["theme"].bind("change", change_theme)
 load()
 reset_simulation()
 render()

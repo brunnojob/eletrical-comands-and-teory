@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,9 +10,17 @@
 <script src="https://cdn.jsdelivr.net/npm/brython@3.13.2/brython_stdlib.js"></script>
 </head>
 <body onload="brython({debug:0})">
-<header><a class="brand" href="./"><span class="mark">ϟ</span><span>Electrical Controls<span class="brand-sub">BRUNNO DEV / PYTHON LAB</span></span></a><div class="header-links"><span class="pill">● Local workspace</span><a href="https://github.com/brunnojob/eletrical-comands-and-teory">GitHub ↗</a><a href="https://buymeacoffee.com/brunnodev">Sponsor ↗</a></div></header>
-<div class="shell"><aside><div class="aside-label">WORKSPACE</div><nav id="navigation" aria-label="Tools"></nav><div class="aside-bottom"><span class="status-dot"></span> No account needed<p>Projects stay in your browser.<br>Export a backup to keep a copy.</p><a href="https://comandoeletricobrunno.netlify.app/">Original website ↗</a></div></aside><main><div id="notification" role="status" aria-live="polite"></div><div id="app"><div class="loading">Loading the Python workspace…<p>If this takes too long, check access to cdn.jsdelivr.net and reload.</p></div></div><noscript>Enable browser scripting to run the Python interpreter.</noscript></main></div>
-<footer>© 2026 Brunno Dev · <a href="https://github.com/brunnojob/eletrical-comands-and-teory/blob/main/LICENSE">MIT License</a><span>Learning simulation · no connection to physical equipment</span></footer>
+<header>
+<a class="brand" href="./"><span class="mark">ϟ</span><span><span data-i18n="Electrical Controls">Electrical Controls</span><span class="brand-sub" data-i18n="BRUNNO DEV / PYTHON LAB">BRUNNO DEV / PYTHON LAB</span></span></a>
+<div class="header-links">
+<div class="preferences">
+<label for="language"><span data-i18n="Language">Language</span><select id="language" aria-label="Language"><option value="en" data-i18n="English">English</option><option value="pt-BR" data-i18n="Portuguese (Brazil)">Portuguese (Brazil)</option></select></label>
+<label for="theme"><span data-i18n="Theme">Theme</span><select id="theme" aria-label="Theme"><option value="dark" data-i18n="Dark">Dark</option><option value="light" data-i18n="Light">Light</option></select></label>
+</div>
+<span class="pill" data-i18n="● Local workspace">● Local workspace</span><a href="https://github.com/brunnojob/eletrical-comands-and-teory">GitHub ↗</a><a href="https://buymeacoffee.com/brunnodev" data-i18n="Sponsor ↗">Sponsor ↗</a>
+</div></header>
+<div class="shell"><aside><div class="aside-label" data-i18n="WORKSPACE">WORKSPACE</div><nav id="navigation" aria-label="Tools"></nav><div class="aside-bottom"><span class="status-dot"></span><span data-i18n="No account needed">No account needed</span><p><span data-i18n="Projects stay in your browser.">Projects stay in your browser.</span><br><span data-i18n="Export a backup to keep a copy.">Export a backup to keep a copy.</span></p></div></aside><main><div id="notification" role="status" aria-live="polite"></div><div id="app"><div class="loading"><span data-i18n="Loading the Python workspace…">Loading the Python workspace…</span><p data-i18n="If this takes too long, check access to cdn.jsdelivr.net and reload.">If this takes too long, check access to cdn.jsdelivr.net and reload.</p></div></div><noscript>Enable browser scripting to run the Python interpreter. / Ative os scripts do navegador para executar o interpretador Python.</noscript></main></div>
+<footer>© 2026 Brunno Dev · <a href="https://github.com/brunnojob/eletrical-comands-and-teory/blob/main/LICENSE" data-i18n="MIT License">MIT License</a><span data-i18n="Learning simulation · no connection to physical equipment">Learning simulation · no connection to physical equipment</span></footer>
 <script type="text/python" src="app.py"></script>
 </body>
 </html>

@@ -2,8 +2,9 @@
 
 Electrical control simulation and automation logic in Python.
 
-**[Open the lab](https://brunnojob.github.io/eletrical-comands-and-teory/)** · [Original website](https://comandoeletricobrunno.netlify.app/)
+**[Open the lab](https://brunnojob.github.io/eletrical-comands-and-teory/)**
 
+- Complete English and Brazilian Portuguese interfaces, with light and dark themes. Language and theme preferences stay in the browser.
 - Six simulators: DOL, reversal, star-delta, traffic lights, phase failure and VFD.
 - Motor calculations, virtual multimeter, theory, training and project planning.
 - Circuit editor, scan history, interlocks, TON timers and PLC Structured Text export.
