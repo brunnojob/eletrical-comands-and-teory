@@ -1,6 +1,3 @@
-import re
-from string import Formatter
-
 from . import learning, learning_pt
 
 
@@ -344,16 +341,26 @@ UI_PT.update({
 PT = {**UI_PT, **_learning_catalog()}
 for tag in ("START_FWD", "START_REV", "STAR_DONE", "DELTA_READY", "STAR_TIME", "DEAD_TIME", "RED_REQUEST", "GREEN_REQUEST", "YELLOW_REQUEST", "PHASE_A", "PHASE_B", "PHASE_C", "DRIVE_RUN"):
     PT[tag] = PT[tag.replace("_", " ")]
-PATTERNS = []
-for source, target in TEMPLATES_PT.items():
-    pieces = []
-    fields = []
-    for literal, field, _, _ in Formatter().parse(source):
-        pieces.append(re.escape(literal))
-        if field is not None:
-            pieces.append("(.+?)")
-            fields.append(field)
-    PATTERNS.append((re.compile("".join(pieces) + "$"), target, fields))
+def match_template(source, value):
+    parts = source.split("{")
+    if not value.startswith(parts[0]):
+        return None
+    remaining = value[len(parts[0]):]
+    values = {}
+    for part in parts[1:]:
+        name, separator = part.split("}", 1)
+        if separator:
+            end = remaining.find(separator)
+            if end < 1:
+                return None
+            values[name] = remaining[:end]
+            remaining = remaining[end + len(separator):]
+        else:
+            if not remaining:
+                return None
+            values[name] = remaining
+            remaining = ""
+    return values if not remaining else None
 
 
 def translate(value, language="en"):
@@ -361,10 +368,9 @@ def translate(value, language="en"):
         return value
     if value in PT:
         return PT[value]
-    for pattern, target, fields in PATTERNS:
-        match = pattern.fullmatch(value)
-        if match:
-            values = dict(zip(fields, match.groups()))
+    for source, target in TEMPLATES_PT.items():
+        values = match_template(source, value)
+        if values is not None:
             if "group" in values:
                 values["group"] = ", ".join(translate(part, language) for part in values["group"].split(", "))
             return target.format(**values)
