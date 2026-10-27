@@ -11,6 +11,8 @@ from electrical.circuits import PRESETS, input_signals, preset
 from electrical.learning import BUILD_STEPS, CHAPTERS, QUESTIONS
 from electrical.projects import normalize_project, read_backup
 from electrical.i18n import translate, signal_label, error_message
+from electrical.guidance import step_note, output_changes
+from electrical.symbols import SYMBOLS, symbol_svg
 from electrical.sizing import bill_of_materials, motor_sizing, voltage_measurement
 
 
@@ -254,6 +256,7 @@ def scan():
     state["clock"] += 1000
     try:
         result = engine.scan(inputs, state["clock"])
+        state["last_scan"] = result
         for change in result["transitions"]:
             state["events"].insert(0, f'{state["clock"] / 1000:.1f}s · {change["id"]} → {"ON" if change["energized"] else "OFF"}')
         for group in result["interlockTrips"]:
@@ -268,6 +271,7 @@ def scan():
         state["events"] = state["events"][:100]
         return result
     except ValueError as error:
+        state["last_scan"] = None
         stop()
         notify(str(error), True, technical=True)
         return None
@@ -358,7 +362,7 @@ def render_simulator(parent):
     top <= row
     mode = field(row, "Circuit", state["mode"], options=[(key, value["name"]) for key, value in PRESETS.items()], key="circuit")
     mode.bind("change", lambda event: switch_mode(event.target.value))
-    supply = field(row, "Line voltage", workspace["voltage"], options=[(220, "220 V"), (380, "380 V"), (440, "440 V"), (660, "660 V")], key="supply")
+    supply = field(row, "Line voltage", workspace["voltage"], options=[(110, "110 V"), (220, "220 V"), (380, "380 V"), (440, "440 V"), (660, "660 V")], key="supply")
     supply.bind("change", lambda event: update_supply(event.target.value))
     text(top, active_preset["detail"], "subtle")
     content = element("div", id="simulation-content")
@@ -375,6 +379,34 @@ def update_supply(value):
     workspace["voltage"] = float(value)
     save()
 
+
+
+def render_symbols(parent):
+    legend = card(parent, "Symbols & names", "symbol-legend")
+    text(legend, "IEC 60617 · IEC 61131-3", "subtle")
+    text(legend, "Contacts are shown unactuated. Drawings are simplified for learning; the main diagram remains conceptual.", "subtle")
+    rows = element("div", cls="symbol-list", role="list", **{"aria-label": t("Electrical symbol legend")})
+    for key, name, _, detail, _ in SYMBOLS:
+        row = element("div", cls="symbol-row", role="listitem")
+        icon = element("span", cls="symbol-icon")
+        icon.html = symbol_svg(key, t(name))
+        description = element("div")
+        description <= element("strong", name)
+        description <= element("small", detail)
+        row <= icon
+        row <= description
+        rows <= row
+    legend <= rows
+    text(legend, "Terminal numbers are common examples; confirm the device markings.", "subtle")
+    references = element("details", cls="symbol-references")
+    references <= element("summary", "Technical references")
+    for label, url in [
+        ("IEC 60617", "https://webstore.iec.ch/en/publication/2723"),
+        ("IEC 61131-3", "https://webstore.iec.ch/en/publication/68533"),
+        ("Coil and contact terminals", "https://www.se.com/us/en/faqs/FA110040/")
+    ]:
+        references <= element("a", label, href=url, target="_blank", rel="noopener noreferrer")
+    legend <= references
 
 def render_simulator_content():
     parent = document["simulation-content"]
@@ -408,13 +440,32 @@ def render_simulator_content():
     step <= element("small", "Manual scan" if state["custom"] else f'Step {state["step"]+1} of {len(active_preset["steps"])}')
     step <= element("span", "Custom circuit: toggle inputs and advance scans." if state["custom"] else active_preset["steps"][state["step"]][0])
     drawing <= step
+    explanation = element("section", cls="scan-explanation", id="scan-explanation", role="status", **{"aria-live": "polite", "aria-atomic": "true"})
+    text(explanation, "What happened in this scan", tag="h3")
+    result = state.get("last_scan")
+    if result is None:
+        text(explanation, "The scan was rejected; the previous output state was preserved.")
+    else:
+        text(explanation, step_note(state["mode"], state["step"], inputs, engine.coils, state["custom"], state["clock"]))
+        switched_on, switched_off = output_changes(result)
+        changes = []
+        if switched_on:
+            changes.append(t("Energized: {signals}.").format(signals=", ".join(signal(key) for key in switched_on)))
+        if switched_off:
+            changes.append(t("De-energized: {signals}.").format(signals=", ".join(signal(key) for key in switched_off)))
+        if result["interlockTrips"]:
+            changes.append(t("An interlock conflict blocked the opposing outputs."))
+        text(explanation, " ".join(changes) if changes else "No output changed in this scan.", "scan-changes")
+    drawing <= explanation
     controls = toolbar(drawing)
     button("← Previous", previous_step, target=controls).disabled = state["custom"] or state["step"] == 0
     button("Pause" if state["running"] is not None else "Auto play", auto, "primary", controls)
     button("Next scan →" if state["custom"] else "Next step →", next_step, target=controls)
     button("Reset", lambda event: reset_and_render(), target=controls)
     text(drawing, "Every scan advances simulated time by 1 second. Coil feedback is visible on the next scan. The diagram is conceptual.", "subtle")
-    side = card(grid, "Input signals")
+    side_column = element("div", cls="simulator-sidebar")
+    grid <= side_column
+    side = card(side_column, "Input signals")
     for key, value in inputs.items():
         box = element("div", cls="check")
         check = html.INPUT(type="checkbox", id="input-" + key)
@@ -447,6 +498,7 @@ def render_simulator_content():
             except ValueError as error:
                 notify(str(error), True, technical=True)
         freq.bind("change", set_frequency)
+    render_symbols(side_column)
     logs = card(parent, "Events & alarms")
     if state["alarms"]:
         text(logs, " · ".join(state["alarms"]), "alert")

@@ -1,4 +1,6 @@
 from . import learning, learning_pt
+from .guidance import STEP_NOTES, MANUAL_NOTE, CUSTOM_NOTE
+from .symbols import SYMBOLS
 
 
 UI_PT = {
@@ -339,6 +341,32 @@ UI_PT.update({
     "{circuit} · {power} kW · {voltage} V · estimated rated current {current} A": "{circuit} · {power} kW · {voltage} V · corrente nominal estimada {current} A",
     "Electrical controls, motor calculations and circuit simulation in Python. No account required.": "Comandos elétricos, cálculos de motores e simulação de circuitos em Python. Sem necessidade de conta.",
 })
+UI_PT.update({
+    "Star timer counting": "Temporizador de estrela em contagem",
+    "Star timer complete": "Tempo de estrela concluído",
+    "Delta enabled": "Triângulo liberado",
+    "Stop main contactor": "Parada do contator principal",
+    "Outputs reset": "Saídas reiniciadas",
+    "What happened in this scan": "O que aconteceu neste ciclo",
+    "The scan was rejected; the previous output state was preserved.": "O ciclo foi rejeitado; o estado anterior das saídas foi preservado.",
+    "Energized: {signals}.": "Ligaram: {signals}.",
+    "De-energized: {signals}.": "Desligaram: {signals}.",
+    "No output changed in this scan.": "Nenhuma saída mudou neste ciclo.",
+    "An interlock conflict blocked the opposing outputs.": "Um conflito de intertravamento bloqueou as saídas opostas.",
+    "Symbols & names": "Símbolos e nomes",
+    "Electrical symbol legend": "Legenda de símbolos elétricos",
+    "Contacts are shown unactuated. Drawings are simplified for learning; the main diagram remains conceptual.": "Contatos representados em repouso. Desenhos simplificados para estudo; o diagrama principal permanece conceitual.",
+    "Terminal numbers are common examples; confirm the device markings.": "Os números de terminais são exemplos comuns; confirme as marcações do dispositivo.",
+    "Technical references": "Referências técnicas",
+    "Coil and contact terminals": "Terminais de bobina e contatos",
+    "IEC 60617 · IEC 61131-3": "IEC 60617 · IEC 61131-3",
+})
+for notes in STEP_NOTES.values():
+    UI_PT.update(notes)
+UI_PT.update([MANUAL_NOTE, CUSTOM_NOTE])
+for _, name, name_pt, detail, detail_pt in SYMBOLS:
+    UI_PT[name] = name_pt
+    UI_PT[detail] = detail_pt
 PT = {**UI_PT, **_learning_catalog()}
 for tag in ("START_FWD", "START_REV", "STAR_DONE", "DELTA_READY", "STAR_TIME", "DEAD_TIME", "RED_REQUEST", "GREEN_REQUEST", "YELLOW_REQUEST", "PHASE_A", "PHASE_B", "PHASE_C", "DRIVE_RUN"):
     PT[tag] = PT[tag.replace("_", " ")]

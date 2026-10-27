@@ -40,7 +40,7 @@ PRESETS = {
         "name": "Star-Delta", "detail": "Star acceleration, an open transition and delta operation.",
         "definition": {"coils": [coil("MAIN", held("START", "MAIN")), coil("STAR_DONE", ton("STAR_TIME", 3000, contact("MAIN"))), coil("DELTA_READY", ton("DEAD_TIME", 1000, series(contact("MAIN"), contact("STAR_DONE")))), coil("STAR", series(contact("MAIN"), contact("STAR_DONE", "NC"), contact("DELTA", "NC"))), coil("DELTA", series(contact("MAIN"), contact("DELTA_READY"), contact("STAR", "NC")))], "interlocks": [["STAR", "DELTA"]]},
         "inputs": {"SAFE": True, "STOP": False, "START": False},
-        "steps": [("Ready", {}), ("Start main contactor", {"START": True}), ("Star acceleration", {"START": False}), ("Star acceleration", {}), ("Star timer reaches its preset", {}), ("Star opens", {}), ("Open transition", {}), ("Delta operation", {}), ("Stop", {"STOP": True})]},
+        "steps": [("Ready", {}), ("Start main contactor", {"START": True}), ("Star acceleration", {"START": False}), ("Star acceleration", {}), ("Star timer counting", {}), ("Star timer complete", {}), ("Open transition", {}), ("Delta enabled", {}), ("Delta operation", {}), ("Stop main contactor", {"STOP": True}), ("Outputs reset", {})]},
     "traffic": {
         "name": "Traffic Light", "detail": "A sequenced signal with mutually exclusive outputs.",
         "definition": {"coils": [coil("RED", contact("RED_REQUEST")), coil("GREEN", contact("GREEN_REQUEST")), coil("YELLOW", contact("YELLOW_REQUEST"))], "interlocks": [["RED", "GREEN", "YELLOW"]]},

@@ -7,7 +7,7 @@ target = root / "_site"
 if target.exists():
     shutil.rmtree(target)
 target.mkdir()
-for name in ["index.html", "site.css", "app.py", "LICENSE"]:
+for name in ["index.html", "site.css", "app.py", "LICENSE", "favicon.svg"]:
     shutil.copy2(root / name, target / name)
 shutil.copytree(root / "electrical", target / "electrical", ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
 shutil.copytree(root / "examples", target / "examples")
