@@ -330,6 +330,7 @@ def _learning_catalog():
 
 
 UI_PT.update({
+    "Project": "Projeto",
     "V AC": "V CA", "V DC": "V CC", "A AC": "A CA",
     "AND": "E", "OR": "OU", "NOT": "NÃO",
     " (copy)": " (cópia)",
@@ -341,6 +342,8 @@ UI_PT.update({
 PT = {**UI_PT, **_learning_catalog()}
 for tag in ("START_FWD", "START_REV", "STAR_DONE", "DELTA_READY", "STAR_TIME", "DEAD_TIME", "RED_REQUEST", "GREEN_REQUEST", "YELLOW_REQUEST", "PHASE_A", "PHASE_B", "PHASE_C", "DRIVE_RUN"):
     PT[tag] = PT[tag.replace("_", " ")]
+
+
 def match_template(source, value):
     parts = source.split("{")
     if not value.startswith(parts[0]):

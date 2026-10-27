@@ -1,4 +1,4 @@
-import re
+import ast
 import unittest
 from html.parser import HTMLParser
 from pathlib import Path
@@ -74,6 +74,22 @@ class LocalizationTests(unittest.TestCase):
         self.assertIn('value="pt-BR"', source)
         self.assertIn('value="light"', source)
         self.assertIn('[data-theme="light"]', Path('site.css').read_text())
+
+    def test_all_literal_interface_labels_have_catalog_entries(self):
+        tree = ast.parse(Path('app.py').read_text())
+        positions = {'field': 1, 'text': 1, 'card': 1, 'button': 0, 'element': 1, 'notify': 0}
+        invariant = {'JSON ↓', 'SVG ↓'}
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Name) or node.func.id not in positions:
+                continue
+            position = positions[node.func.id]
+            if len(node.args) <= position:
+                continue
+            argument = node.args[position]
+            if isinstance(argument, ast.Constant) and isinstance(argument.value, str):
+                value = argument.value
+                if any(char.isalpha() for char in value) and value not in invariant:
+                    self.assertIn(value, PT, f'Missing UI translation: {value}')
 
     def test_errors_and_technical_signal_identifiers(self):
         for message in ('invalid_coils', 'invalid_scan_time', 'invalid_timer_delay', 'missing_signal:START', 'Expecting value: line 1', "could not convert string to float: 'x'"):
