@@ -347,11 +347,13 @@ for tag in ("START_FWD", "START_REV", "STAR_DONE", "DELTA_READY", "STAR_TIME", "
 PATTERNS = []
 for source, target in TEMPLATES_PT.items():
     pieces = []
+    fields = []
     for literal, field, _, _ in Formatter().parse(source):
         pieces.append(re.escape(literal))
         if field is not None:
-            pieces.append("(?P<" + field + ">.+?)")
-    PATTERNS.append((re.compile("".join(pieces) + "$"), target))
+            pieces.append("(.+?)")
+            fields.append(field)
+    PATTERNS.append((re.compile("".join(pieces) + "$"), target, fields))
 
 
 def translate(value, language="en"):
@@ -359,10 +361,10 @@ def translate(value, language="en"):
         return value
     if value in PT:
         return PT[value]
-    for pattern, target in PATTERNS:
+    for pattern, target, fields in PATTERNS:
         match = pattern.fullmatch(value)
         if match:
-            values = match.groupdict()
+            values = dict(zip(fields, match.groups()))
             if "group" in values:
                 values["group"] = ", ".join(translate(part, language) for part in values["group"].split(", "))
             return target.format(**values)
